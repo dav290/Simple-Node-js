@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User and Exercise API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+       
+        .form-group {
+            margin-bottom: 15px;
+            
+        }
+        input, button {
+            padding: 10px;
+            font-size: 14px;
+        }
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>User and Exercise API</h1>
+
+    <!-- Create User Form -->
+    <div class="form-group">
+        <h2>Create User</h2>
+        <input type="text" id="username" placeholder="Enter username" />
+        <button onclick="createUser()">Create User</button>
+    </div>
+
+    <!-- Get All Users Button -->
+    <div class="form-group">
+        <h2>Get All Users</h2>
+        <button onclick="getUsers()">Get Users</button>
+    </div>
+
+    <!-- Add Exercise Form -->
+    <div class="form-group">
+        <h2>Add Exercise</h2>
+        <input type="text" id="userId" placeholder="Enter User ID" />
+        <input type="text" id="description" placeholder="Enter Exercise Description" />
+        <input type="number" id="duration" placeholder="Enter Exercise Duration (mins)" />
+        <input type="date" id="date" placeholder="Optional: Exercise Date" />
+        <button onclick="addExercise()">Add Exercise</button>
+    </div>
+
+    <!-- Get Exercise Logs -->
+    <div class="form-group">
+        <h2>Get Exercise Logs</h2>
+        <input type="text" id="logUserId" placeholder="Enter User ID" />
+        <input type="text" id="fromDate" placeholder="From Date (yyyy-mm-dd)" />
+        <input type="text" id="toDate" placeholder="To Date (yyyy-mm-dd)" />
+        <input type="number" id="limit" placeholder="Limit" />
+        <button onclick="getLogs()">Get Logs</button>
+    </div>
+
+    <!-- Display Results -->
+    <div class="result" id="result"></div>
+
+    <script>
+        const apiUrl = 'http://localhost:3000/api/users';
+
+        // Function to create a user
+        async function createUser() {
+            const username = document.getElementById('username').value;
+            try {
+                const response = await fetch(`${apiUrl}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<strong>New User Created:</strong> ${JSON.stringify(data)}`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        // Function to get all users
+        async function getUsers() {
+            try {
+                const response = await fetch(`${apiUrl}`);
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<strong>Users:</strong> ${JSON.stringify(data)}`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        // Function to add exercise for a user
+        async function addExercise() {
+            const userId = document.getElementById('userId').value;
+            const description = document.getElementById('description').value;
+            const duration = document.getElementById('duration').value;
+            const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
+
+            try {
+                const response = await fetch(`${apiUrl}/${userId}/exercises`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ description, duration, date })
+                });
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<strong>Exercise Added:</strong> ${JSON.stringify(data)}`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        // Function to get exercise logs for a user
+        async function getLogs() {
+            const userId = document.getElementById('logUserId').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const limit = document.getElementById('limit').value;
+
+            try {
+                let url = `${apiUrl}/${userId}/logs?`;
+                if (fromDate) url += `from=${fromDate}&`;
+                if (toDate) url += `to=${toDate}&`;
+                if (limit) url += `limit=${limit}&`;
+
+                // Remove trailing '&' if it exists
+                url = url.endsWith('&') ? url.slice(0, -1) : url;
+
+                const response = await fetch(url);
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<strong>Exercise Logs:</strong> ${JSON.stringify(data)}`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
